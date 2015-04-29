@@ -1,0 +1,23 @@
+{
+  "bot_id": "sierra-leone-banks",
+  "title": "My simple bot",
+  "description": "This is the bot for opencorporates mission 768",
+  "language": "python",
+  "data_type": "primary data",
+  "identifying_fields": [
+    "company_name"
+  ],
+  "company_fields": {
+    "name": "company_name"
+  },
+  "files": [
+    "scraper.py"
+  ],
+  "frequency": "monthly",
+  "publisher": {
+    "name": "Bank of Sierra Leonoe",
+    "url": "http://www.bsl.gov.sl/financial_institutions.html",
+    "terms": "n/a",
+    "terms_url": "n/a"
+  }
+}
