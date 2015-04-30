@@ -30,34 +30,26 @@ def extract_data():
     num_rows = worksheet.nrows - 1
     curr_row = 3
     all_banks = []
-    current_branches = []
-    current_company_name = ""
     sample_date = datetime.date.today().isoformat()
     while curr_row < num_rows:
         curr_row += 1
-        company_name = worksheet.cell_value(curr_row, 0)
-        if company_name != "":
-            if current_company_name != "":
-                bank_object = {"company_name": current_company_name,
-                               "branches": current_branches,
-                               "sample_date": sample_date,
-                               "source_url": DOCUMENT_LINK
-                              }
-                all_banks.append(bank_object)
-            current_company_name = company_name.strip()
-            current_branches = []
+        is_new_root_bank = worksheet.cell_value(curr_row, 0) != ""
+        if is_new_root_bank:
+            bank_name = worksheet.cell_value(curr_row, 0)
+            bank_name = bank_name.strip()
+            bank_object = {"company_name": bank_name,
+                           "branches": [],
+                           "sample_date": sample_date,
+                           "source_url": DOCUMENT_LINK
+                          }
+            all_banks.append(bank_object)
         branch_name = worksheet.cell_value(curr_row, 1)
         branch_name = branch_name.strip()
         branch_address = worksheet.cell_value(curr_row, 2)
-        if not branch_name == "" and not branch_address == "":
+        row_is_empty = (branch_name == "" and not branch_address == "")
+        if not row_is_empty:
             branch_dict = {"branch": branch_name, "address": branch_address}
-            current_branches.append(branch_dict)
-
-    all_banks.append({"company_name": current_company_name,
-                      "branches": current_branches,
-                      "sample_date": sample_date,
-                      "source_url": DOCUMENT_LINK
-                     })
+            all_banks[-1]["branches"].append(branch_dict)
 
     for bank in all_banks:
         print json.dumps(bank)
