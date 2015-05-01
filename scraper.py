@@ -5,11 +5,13 @@ import requests
 import xlrd
 import json
 import datetime
+import turbotlib
 
 DOCUMENT_LINK = "http://www.bsl.gov.sl/Directory_of_Financial_&_" \
                 + "Non-Bank_Financial_Institutions/" \
                 + "COMMERCIAL_BANKS_&_ADDRESSES.xls"
-SHEET_LOCATION = "./sheet.xls"
+SHEET_LOCATION = "%s/sheet.xls" % turbotlib.data_dir()
+
 
 def download():
     """ This downloads the file and stores it to the local disk"""
