@@ -6,12 +6,21 @@ import xlrd
 import json
 import datetime
 import turbotlib
+import re
+from bs4 import BeautifulSoup
 
 DOCUMENT_LINK = "http://www.bsl.gov.sl/Directory_of_Financial_&_" \
                 + "Non-Bank_Financial_Institutions/" \
                 + "COMMERCIAL_BANKS_&_ADDRESSES.xls"
 SHEET_LOCATION = "%s/sheet.xls" % turbotlib.data_dir()
+SOURCES = ["http://www.bsl.gov.sl/ntl_lottery.html",
+           "http://www.bsl.gov.sl/housing_fin.html",
+           "http://www.bsl.gov.sl/insurance_cos.html",
+           "http://www.bsl.gov.sl/savings_loans.html",
+           "http://www.bsl.gov.sl/finance_houses.html"
+          ]
 
+SAMPLE_DATE = datetime.date.today().isoformat()
 
 def download():
     """ This downloads the file and stores it to the local disk"""
@@ -32,7 +41,6 @@ def extract_data():
     num_rows = worksheet.nrows - 1
     curr_row = 3
     all_banks = []
-    sample_date = datetime.date.today().isoformat()
     while curr_row < num_rows:
         curr_row += 1
         is_new_root_bank = worksheet.cell_value(curr_row, 0) != ""
@@ -41,7 +49,7 @@ def extract_data():
             bank_name = bank_name.strip()
             bank_object = {"company_name": bank_name,
                            "branches": [],
-                           "sample_date": sample_date,
+                           "sample_date": SAMPLE_DATE,
                            "source_url": DOCUMENT_LINK
                           }
             all_banks.append(bank_object)
@@ -60,6 +68,48 @@ def main():
     """ The main function """
     download()
     extract_data()
+    for source in SOURCES:
+        extract_companies(source)
+
+
+def extract_companies(source_url):
+    """ Gets the insurance companies """
+    html_content = requests.get(source_url).text
+    content = BeautifulSoup(html_content)
+    table = content.findAll("table")[5]
+    companies = table_to_json(table)
+    for company in companies:
+        company["source_url"] = source_url
+        company["sample_date"] = SAMPLE_DATE
+        print json.dumps(company)
+
+
+def table_to_json(bs4_table):
+    """ converts a BeautifulSoup table to a json array with
+    dictionaries as valus. Those contain the table headings
+    as keys and the cell values as values """
+    table_data = []
+    for row in bs4_table("tr"):
+        row_values = []
+        for cell in row("td"):
+            values = [string for string in cell.strings]
+            if len(values) == 1:
+                row_values.append(clean(values[0]))
+            else:
+                row_values.append([clean(value) for value in values])
+        table_data.append(row_values)
+    headings = table_data.pop(0)
+    all_values = []
+    for line in table_data:
+        structure = dict((headings[i], line[i]) for i in range(len(line)))
+        all_values.append(structure)
+    return all_values
+
+def clean(string):
+    """ return newlines and whitespace inside of string """
+    without_newline = string.replace("\r\n", "")
+    return re.sub(r"\s\s+", " ", without_newline)
+
 
 
 if __name__ == "__main__":

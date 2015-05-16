@@ -5,7 +5,8 @@
   "language": "python",
   "data_type": "primary data",
   "identifying_fields": [
-    "company_name"
+    "company_name",
+    "Name"
   ],
   "company_fields": {
     "name": "company_name"
