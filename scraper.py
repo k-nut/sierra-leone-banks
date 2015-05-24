@@ -56,7 +56,7 @@ def extract_data():
         branch_name = worksheet.cell_value(curr_row, 1)
         branch_name = branch_name.strip()
         branch_address = worksheet.cell_value(curr_row, 2)
-        row_is_empty = (branch_name == "" and not branch_address == "")
+        row_is_empty = (branch_name == "" and branch_address == "")
         if not row_is_empty:
             branch_dict = {"branch": branch_name, "address": branch_address}
             all_banks[-1]["branches"].append(branch_dict)
