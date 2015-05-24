@@ -86,7 +86,7 @@ def extract_companies(source_url):
 
 def table_to_json(bs4_table):
     """ converts a BeautifulSoup table to a json array with
-    dictionaries as valus. Those contain the table headings
+    dictionaries as values. Those contain the table headings
     as keys and the cell values as values """
     table_data = []
     for row in bs4_table("tr"):
@@ -106,7 +106,7 @@ def table_to_json(bs4_table):
     return all_values
 
 def clean(string):
-    """ return newlines and whitespace inside of string """
+    """ delete newlines and whitespace inside of string """
     without_newline = string.replace("\r\n", "")
     return re.sub(r"\s\s+", " ", without_newline)
 
