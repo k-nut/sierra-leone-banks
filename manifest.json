@@ -12,8 +12,14 @@
     "name": "company_name"
   },
   "files": [
-    "scraper.py"
+    "scraper.py",
+    "tranformer.py"
   ],
+  "transformers": [{
+    "file":  "transformer.py",
+    "data_type": "simple-licence",
+    "identifying_fields": ["company_name"]
+  }],
   "frequency": "monthly",
   "publisher": {
     "name": "Bank of Sierra Leonoe",
