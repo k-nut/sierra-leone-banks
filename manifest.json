@@ -13,7 +13,7 @@
   },
   "files": [
     "scraper.py",
-    "tranformer.py"
+    "transformer.py"
   ],
   "transformers": [{
     "file":  "transformer.py",
