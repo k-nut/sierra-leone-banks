@@ -6,6 +6,7 @@ import xlrd
 import json
 import datetime
 import turbotlib
+import subprocess
 import re
 from bs4 import BeautifulSoup
 
@@ -19,13 +20,47 @@ SOURCES = ["http://www.bsl.gov.sl/ntl_lottery.html",
            "http://www.bsl.gov.sl/savings_loans.html",
            "http://www.bsl.gov.sl/finance_houses.html"
           ]
+COMMUNITY_BANK_DOC_LINK = "http://www.bsl.gov.sl/Directory_of_Financial_&_Non-Bank_Financial_Institutions/COMMUNITY_BANKS_&_ADDRESSES.doc"
+COMMUNIY_BANK_LOCATION = "%s/comunity_banks.doc" % turbotlib.data_dir()
 
 SAMPLE_DATE = datetime.date.today().isoformat()
 
-def download():
+def download_community_banks():
+    """ download the community banK information and convert it """
+    download(COMMUNITY_BANK_DOC_LINK, COMMUNIY_BANK_LOCATION)
+    subprocess.call(['libreoffice',
+                     '--headless',
+                     '--convert-to',
+                     'html',
+                     COMMUNIY_BANK_LOCATION,
+                     '--outdir',
+                     turbotlib.data_dir()]
+                   )
+
+def extract_community_bank_data():
+    with open("%s/comunity_banks.html" % turbotlib.data_dir()) as infile:
+        html_content = infile.read()
+        content = BeautifulSoup(html_content)
+        table = content.find("table")
+    for j, row in enumerate(table("tr")):
+        # skip the headings
+        if j == 0:
+            continue
+        data = {}
+        for i, cell in enumerate(row("td")):
+            strings = [string for string in cell.strings]
+            value = clean(strings[1])
+            if i == 0:
+                data['name'] = value
+            elif i == 1:
+                data['address'] = value
+        print data
+
+
+def download(link, savepath):
     """ This downloads the file and stores it to the local disk"""
-    with open(SHEET_LOCATION, "wb") as handle:
-        response = requests.get(DOCUMENT_LINK)
+    with open(savepath, "wb") as handle:
+        response = requests.get(link)
         for block in response.iter_content(1024):
             if not block:
                 break
@@ -66,10 +101,12 @@ def extract_data():
 
 def main():
     """ The main function """
-    download()
-    extract_data()
-    for source in SOURCES:
-        extract_companies(source)
+    #download_community_banks()
+    extract_community_bank_data()
+    #download(DOCUMENT_LINK, SHEET_LOCATION)
+    #extract_data()
+    #for source in SOURCES:
+        #extract_companies(source)
 
 
 def extract_companies(source_url):
