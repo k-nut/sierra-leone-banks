@@ -54,7 +54,10 @@ def extract_community_bank_data():
                 data['name'] = value
             elif i == 1:
                 data['address'] = value
-        print data
+        data['type'] = 'Community Bank'
+        data['sample_date'] = SAMPLE_DATE
+        data['source_url'] = COMMUNITY_BANK_DOC_LINK
+        print json.dumps(data)
 
 
 def download(link, savepath):
@@ -85,7 +88,8 @@ def extract_data():
             bank_object = {"company_name": bank_name,
                            "branches": [],
                            "sample_date": SAMPLE_DATE,
-                           "source_url": DOCUMENT_LINK
+                           "source_url": DOCUMENT_LINK,
+                           "type": "Bank"
                           }
             all_banks.append(bank_object)
         branch_name = worksheet.cell_value(curr_row, 1)
@@ -101,12 +105,12 @@ def extract_data():
 
 def main():
     """ The main function """
-    #download_community_banks()
+    download_community_banks()
     extract_community_bank_data()
-    #download(DOCUMENT_LINK, SHEET_LOCATION)
-    #extract_data()
-    #for source in SOURCES:
-        #extract_companies(source)
+    download(DOCUMENT_LINK, SHEET_LOCATION)
+    extract_data()
+    for source in SOURCES:
+        extract_companies(source)
 
 
 def extract_companies(source_url):
@@ -114,10 +118,12 @@ def extract_companies(source_url):
     html_content = requests.get(source_url).text
     content = BeautifulSoup(html_content)
     table = content.findAll("table")[5]
+    insitution_type = content.findAll('b')[3].string
     companies = table_to_json(table)
     for company in companies:
         company["source_url"] = source_url
         company["sample_date"] = SAMPLE_DATE
+        company["type"] = insitution_type
         print json.dumps(company)
 
 

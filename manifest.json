@@ -6,7 +6,8 @@
   "data_type": "primary data",
   "identifying_fields": [
     "company_name",
-    "Name"
+    "Name",
+    "name"
   ],
   "company_fields": {
     "name": "company_name"

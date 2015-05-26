@@ -18,7 +18,7 @@ def convert_data():
             "company_jurisdiction": 'Sierra Leone',
             "source_url": raw_record['source_url'],
             "sample_date": raw_record['sample_date'],
-            #"jurisdiction_classification": 'Bank',
+            "jurisdiction_classification": raw_record['type'],
             "category": 'Financial',
             "confidence": 'MEDIUM',
         }
@@ -29,6 +29,8 @@ def convert_data():
             licence_record["company_name"] = raw_record['company_name']
         elif "Name" in raw_record.keys():
             licence_record["company_name"] = raw_record['Name']
+        elif "name" in raw_record.keys():
+            licence_record["company_name"] = raw_record['name']
 
         print json.dumps(licence_record)
 
