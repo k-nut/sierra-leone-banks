@@ -31,6 +31,8 @@ def convert_data():
             licence_record["company_name"] = raw_record['Name']
         elif "name" in raw_record.keys():
             licence_record["company_name"] = raw_record['name']
+        elif "NAME" in raw_record.keys():
+            licence_record["company_name"] = raw_record['NAME']
 
         print json.dumps(licence_record)
 

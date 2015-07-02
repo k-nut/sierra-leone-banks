@@ -7,7 +7,8 @@
   "identifying_fields": [
     "company_name",
     "Name",
-    "name"
+    "name",
+    "NAME"
   ],
   "company_fields": {
     "name": "company_name"

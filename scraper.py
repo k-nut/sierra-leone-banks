@@ -8,6 +8,7 @@ import datetime
 import turbotlib
 import subprocess
 import re
+import os
 from bs4 import BeautifulSoup
 
 DOCUMENT_LINK = "http://www.bsl.gov.sl/Directory_of_Financial_&_" \
@@ -23,6 +24,9 @@ SOURCES = ["http://www.bsl.gov.sl/ntl_lottery.html",
 COMMUNITY_BANK_DOC_LINK = "http://www.bsl.gov.sl/Directory_of_Financial_&_Non-Bank_Financial_Institutions/COMMUNITY_BANKS_&_ADDRESSES.doc"
 COMMUNIY_BANK_LOCATION = "%s/comunity_banks.doc" % turbotlib.data_dir()
 
+DISCOUNT_HOUSES_DOC_LINK = "http://www.bsl.gov.sl/Directory_of_Financial_&_Non-Bank_Financial_Institutions/DISCOUNT_HOUSES_MFIs_&_MORTGAGE_&_SAVINGS_COMPANIES_&_ADDRESSES.doc"
+DISCOUNT_HOUSE_LOCATION = "%s/discount_houses.doc" % turbotlib.data_dir()
+
 SAMPLE_DATE = datetime.date.today().isoformat()
 
 def download_community_banks():
@@ -34,10 +38,23 @@ def download_community_banks():
                      'html',
                      COMMUNIY_BANK_LOCATION,
                      '--outdir',
-                     turbotlib.data_dir()]
+                     turbotlib.data_dir()], stdout=open(os.devnull, 'wb')
+                   )
+
+def download_discount_housing():
+    """ download the community banK information and convert it """
+    download(DISCOUNT_HOUSES_DOC_LINK, DISCOUNT_HOUSE_LOCATION)
+    subprocess.call(['libreoffice',
+                     '--headless',
+                     '--convert-to',
+                     'html',
+                     DISCOUNT_HOUSE_LOCATION,
+                     '--outdir',
+                     turbotlib.data_dir()], stdout=open(os.devnull, 'wb')
                    )
 
 def extract_community_bank_data():
+    """ Extracts the data from the downloaded html"""
     with open("%s/comunity_banks.html" % turbotlib.data_dir()) as infile:
         html_content = infile.read()
         content = BeautifulSoup(html_content)
@@ -103,10 +120,61 @@ def extract_data():
     for bank in all_banks:
         print json.dumps(bank)
 
-def main():
-    """ The main function """
+
+def extract_data_from_table(table):
+    headers = []
+    data = []
+    for i, tr in enumerate(table.find_all("tr")):
+        parts = [clean(td.text) for td in tr.find_all("td")]
+        if i == 0:
+            headers = parts
+        else:
+            dictionary = {}
+            for i in range(len(headers)):
+                dictionary[headers[i]] = parts[i]
+                
+            data.append(dictionary)
+    return data
+
+
+def extract_discount_housing_data():
+    html_location = DISCOUNT_HOUSE_LOCATION.replace("doc", "html")
+    with open(html_location) as infile:
+        file_content = infile.read()
+        html_content = BeautifulSoup(file_content)
+
+        headings = []
+        all_data = []
+        for p in html_content.body.find_all("p", recursive=False):
+            content = clean(p.text)
+            if content != "":
+                headings.append(content)
+
+        for i, table in enumerate(html_content.body.find_all("table")):
+            extracted = extract_data_from_table(table)
+            for e in extracted:
+                company_type = headings[i].split("AND")[0]
+                e["type"] = company_type
+                e["sample_date"] = SAMPLE_DATE
+                e["source_url"] = DISCOUNT_HOUSES_DOC_LINK
+                print json.dumps(e)
+
+def main_discount_housing():
+    """ The main function for discount housing related data"""
+    download_discount_housing()
+    extract_discount_housing_data()
+
+
+def main_community_banks():
+    """ The main function for community bank related data"""
     download_community_banks()
     extract_community_bank_data()
+
+
+def main():
+    """ The main function """
+    main_discount_housing()
+    main_community_banks()
     download(DOCUMENT_LINK, SHEET_LOCATION)
     extract_data()
     for source in SOURCES:
@@ -151,7 +219,8 @@ def table_to_json(bs4_table):
 def clean(string):
     """ delete newlines and whitespace inside of string """
     without_newline = string.replace("\r\n", "")
-    return re.sub(r"\s\s+", " ", without_newline)
+    without_newline = without_newline.replace("\n", "")
+    return re.sub(r"\s\s+", " ", without_newline).strip()
 
 
 
